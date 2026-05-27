@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: github_repos
+    description: GitHub open-source repository metadata and file contents (BigQuery public dataset).
+    database: bigquery-public-data
+    schema: github_repos
+    tables:
+      - name: files
+        description: File paths and refs across public GitHub repositories.
+      - name: contents
+        description: File contents keyed by content id (join to files on id).
+
+  - name: stackoverflow
+    description: Stack Overflow posts and answers (BigQuery public dataset).
+    database: bigquery-public-data
+    schema: stackoverflow
+    tables:
+      - name: posts_questions
+        description: Question posts, including tags and engagement metrics.
+      - name: posts_answers
+        description: Answer posts, joined to questions via accepted_answer_id.
+
+  - name: pypi
+    description: Python Package Index downloads and package metadata (BigQuery public dataset).
+    database: bigquery-public-data
+    schema: pypi
+    tables:
+      - name: file_downloads
+        description: PyPI file download events (timestamped).
+      - name: distribution_metadata
+        description: Package version metadata (summary, author, links).

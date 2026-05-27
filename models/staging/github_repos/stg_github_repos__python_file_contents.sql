@@ -13,15 +13,7 @@
         cost inefficient.
 */
 
-{{ config(materialized='table') }}
-
 SELECT
-  f.*,
-  c.content,
-  c.copies
+  *
 FROM
-  {{ ref('stg_github_repos__contents') }} c
-JOIN
-  {{ ref('stg_github_repos__files') }} f
-USING
-  (id)
+  {{ ref('stg_github_repos__contents') }}

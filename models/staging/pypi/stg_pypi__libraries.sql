@@ -11,8 +11,6 @@
 
 */
 
-{{ config(materialized='table') }}
-
 WITH
 
 library_downloads AS (
@@ -21,7 +19,7 @@ library_downloads AS (
     file.version AS version,
     SUM(1) AS downloads
   FROM
-    `bigquery-public-data.pypi.file_downloads`
+    {{ source('pypi', 'file_downloads') }}
   WHERE
     DATE(timestamp) BETWEEN "2022-06-01" AND "2022-06-30"
   GROUP BY 1,2 ),
@@ -36,7 +34,7 @@ library_metadata AS (
     home_page,
     download_url
   FROM
-    `bigquery-public-data.pypi.distribution_metadata`
+    {{ source('pypi', 'distribution_metadata') }}
 )
 
 SELECT

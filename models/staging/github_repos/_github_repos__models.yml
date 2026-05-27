@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_github_repos__python_files
+    description: Distinct Python scripts and Jupyter notebooks on the default branch (master) across public repos.
+    columns:
+      - name: id
+        description: Content id shared with github_repos.contents.
+        tests:
+          - not_null
+      - name: repo_name
+        tests:
+          - not_null
+      - name: repo_path
+        tests:
+          - not_null
+
+  - name: stg_github_repos__contents
+    description: Python and notebook file metadata joined to non-null file contents from the GitHub public dataset.
+
+  - name: stg_github_repos__python_file_contents
+    description: Materialized copy of staged GitHub file contents for downstream notebook parsing (large; query with care).

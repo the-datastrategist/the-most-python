@@ -1,7 +1,5 @@
 -- Aggregate metrics for StackOverflow tags related to Python
 
-{{ config(materialized='table') }}
-
 with
 
 tag_agg as (
@@ -18,8 +16,8 @@ tag_agg as (
   avg(comment_count) as avg_comment_count,
   avg(favorite_count) as avg_favorite_count,
   avg(view_count) as avg_view_count
-  FROM `the-data-strategist.the_most_python.stackoverflow_python_questions` 
-  group by 1,2
+  FROM {{ ref('stg_stackoverflow__python_questions') }}
+  GROUP BY 1, 2
 )
 
 

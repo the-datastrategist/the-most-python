@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: int_stackoverflow_tags_aggregated_metrics
+    description: Question volume and engagement metrics aggregated by tag set, with share of questions and accepted-answer rate.
+    columns:
+      - name: tags
+        tests:
+          - not_null
+      - name: questions
+        tests:
+          - not_null

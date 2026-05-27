@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: stg_pypi__libraries
+    description: PyPI download counts for June 2022 joined to distribution metadata (summary, author, keywords).
+    columns:
+      - name: project
+        tests:
+          - not_null

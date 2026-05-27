@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: int_notebook_cells_unnested
+    description: Parsed .ipynb JSON into per-notebook arrays of cell structs (type, source, execution metadata).

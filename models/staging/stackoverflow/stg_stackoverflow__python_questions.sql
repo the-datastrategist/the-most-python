@@ -1,7 +1,5 @@
 -- Collect all StackOverflow questions related to Python
 
-{{ config(materialized='table') }}
-
 SELECT
   q.id,
   q.tags,
@@ -24,9 +22,9 @@ SELECT
   DATE(q.community_owned_date) AS community_owned_date,
 
 FROM
-  `bigquery-public-data.stackoverflow.posts_questions` q
+  {{ source('stackoverflow', 'posts_questions') }} q
 LEFT JOIN
-  `bigquery-public-data.stackoverflow.posts_answers` a
+  {{ source('stackoverflow', 'posts_answers') }} a
 ON
   q.accepted_answer_id = a.id
 WHERE

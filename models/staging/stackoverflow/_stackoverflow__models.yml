@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: stg_stackoverflow__python_questions
+    description: Stack Overflow questions tagged with Python, enriched with accepted answer text and URLs.
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: tags
+        tests:
+          - not_null

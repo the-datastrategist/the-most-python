@@ -8,16 +8,14 @@
 
 */
 
-{{ config(materialized='view') }}
-
 SELECT
   f.*,
   c.content,
   c.copies
 FROM
-  `bigquery-public-data.github_repos.contents` c
+  {{ source('github_repos', 'contents') }} c
 JOIN
-  repo_files f
+  {{ ref('stg_github_repos__python_files') }} f
 USING
   (id)
 WHERE
