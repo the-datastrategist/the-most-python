@@ -6,24 +6,67 @@ models:
 
   - name: mart_pypi__libraries
     description: PyPI download counts joined to package metadata (June 2022 window).
+    columns:
+      - name: project
+        data_tests:
+          - not_null
+      - name: version
+        data_tests:
+          - not_null
+      - name: downloads
+        data_tests:
+          - not_null
 
   - name: mart_stackoverflow__python_questions
     description: Python-tagged Stack Overflow questions with accepted answers and engagement fields.
+    columns:
+      - name: id
+        data_tests:
+          - unique
+          - not_null
+      - name: tags
+        data_tests:
+          - not_null
 
   - name: mart_stackoverflow__python_tags
     description: Tag-set aggregates and accepted-answer rates for Python Stack Overflow questions.
+    columns:
+      - name: tags
+        data_tests:
+          - unique
+          - not_null
+      - name: questions
+        data_tests:
+          - not_null
 
   - name: mart_ipynb__notebook_cells
     description: Parsed Jupyter notebook cells per repository path.
+    columns:
+      - name: repo_name
+        data_tests:
+          - not_null
+      - name: repo_path
+        data_tests:
+          - not_null
 
   - name: mart_ipynb__notebook_code
     description: Cleaned code cells per notebook with repository breadth ranks.
 
   - name: mart_ipynb__libraries
     description: Python libraries referenced in notebooks with repo and file share metrics.
+    columns:
+      - name: library
+        data_tests:
+          - unique
+          - not_null
 
   - name: mart_ipynb__functions
     description: Function references across notebooks with popularity and share metrics.
+    columns:
+      - name: function
+        data_tests:
+          - unique
+          - not_null
 
   - name: mart_ipynb__function_samples
     description: Ranked notebook code samples for high-usage Python functions.

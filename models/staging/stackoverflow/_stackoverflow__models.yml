@@ -8,12 +8,12 @@ models:
     columns:
       - name: id
         description: Stack Overflow question post id (primary key).
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: tags
         description: Pipe-delimited tag string as stored on the question (e.g. `python|pandas|numpy`).
-        tests:
+        data_tests:
           - not_null
       - name: tags_list
         description: Same tags as `tags`, formatted with comma separators for reporting and readability.

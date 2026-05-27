@@ -9,17 +9,19 @@ models:
     columns:
       - name: id
         description: Git blob/content id; join key to `github_repos.contents` and downstream content models.
-        tests:
+        data_tests:
           - not_null
       - name: repo_name
         description: Fully qualified repository name (`owner/repo`) from the GitHub public dataset.
-        tests:
+        data_tests:
           - not_null
       - name: repo_ref
         description: Git ref for the file snapshot (filtered to default-branch refs containing `master`).
+        data_tests:
+          - not_null
       - name: repo_path
         description: Repository-relative file path (e.g. `notebooks/analysis.ipynb` or `src/train.py`).
-        tests:
+        data_tests:
           - not_null
 
   - name: stg_github_repos__contents
@@ -29,14 +31,22 @@ models:
     columns:
       - name: id
         description: Content id linking file metadata to the stored blob in `contents`.
+        data_tests:
+          - not_null
       - name: repo_name
         description: Fully qualified repository name (`owner/repo`).
-      - name: repo_ref
-        description: Git ref for this file version (default-branch filter applied upstream).
+        data_tests:
+          - not_null
       - name: repo_path
         description: Repository-relative path to the `.py` or `.ipynb` file.
+        data_tests:
+          - not_null
+      - name: repo_ref
+        description: Git ref for this file version (default-branch filter applied upstream).
       - name: content
         description: Raw file body from GitHub (notebook JSON or Python source as stored in the public dataset).
+        data_tests:
+          - not_null
       - name: copies
         description: Number of repositories referencing this identical content blob (GitHub deduplication metric).
 
@@ -48,13 +58,21 @@ models:
     columns:
       - name: id
         description: Content id linking file metadata to the stored blob.
+        data_tests:
+          - not_null
       - name: repo_name
         description: Fully qualified repository name (`owner/repo`).
-      - name: repo_ref
-        description: Git ref for this file version.
+        data_tests:
+          - not_null
       - name: repo_path
         description: Repository-relative path to the `.py` or `.ipynb` file.
+        data_tests:
+          - not_null
+      - name: repo_ref
+        description: Git ref for this file version.
       - name: content
         description: Raw file body used by `int_notebook_cells_unnested` and other parsing models.
+        data_tests:
+          - not_null
       - name: copies
         description: Count of repos sharing this content blob.

@@ -9,8 +9,12 @@ models:
     columns:
       - name: repo_name
         description: Fully qualified GitHub repository (`owner/repo`) containing the notebook.
+        data_tests:
+          - not_null
       - name: repo_path
         description: Repository-relative path to the `.ipynb` file.
+        data_tests:
+          - not_null
       - name: cells
         description: >
           Array of structs, one per notebook cell fragment after splitting on `cell_type`. Fields
@@ -38,3 +42,12 @@ models:
     description: >
       One row per `.ipynb` file with arrays of `from`/`import` libraries and function references
       parsed from code cells via regex (best-effort; not a full Python AST).
+    columns:
+      - name: repo_name
+        description: Fully qualified GitHub repository (`owner/repo`) containing the notebook.
+        data_tests:
+          - not_null
+      - name: repo_path
+        description: Repository-relative path to the `.ipynb` file.
+        data_tests:
+          - not_null

@@ -9,12 +9,16 @@ models:
     columns:
       - name: project
         description: PyPI project name from download events (join key to metadata `name`).
-        tests:
+        data_tests:
           - not_null
       - name: version
         description: Released package version associated with the download events in the window.
+        data_tests:
+          - not_null
       - name: downloads
         description: Count of file download events for this project-version in June 2022.
+        data_tests:
+          - not_null
       - name: name
         description: Package name from `distribution_metadata` (should match `project` when metadata exists).
       - name: summary

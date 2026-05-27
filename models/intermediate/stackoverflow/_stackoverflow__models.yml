@@ -9,13 +9,16 @@ models:
     columns:
       - name: tags
         description: Pipe-delimited tag string identifying this tag-set cohort.
-        tests:
+        data_tests:
           - not_null
+          - unique
       - name: tags_list
         description: Comma-separated display form of the same tag set.
+        data_tests:
+          - not_null
       - name: questions
         description: Number of questions with exactly this tag combination.
-        tests:
+        data_tests:
           - not_null
       - name: accepted_answers
         description: Count of questions in the cohort that have an accepted answer.

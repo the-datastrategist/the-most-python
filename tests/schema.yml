@@ -1,0 +1,31 @@
+version: 2
+
+data_tests:
+  - name: assert_stg_pypi__libraries_unique_grain
+    description: One row per PyPI project and version in the June 2022 download window.
+
+  - name: assert_stg_pypi__libraries_positive_downloads
+    description: Download counts come from grouped file_downloads events and must be positive.
+
+  - name: assert_int_stackoverflow_tags_metrics_valid
+    description: >
+      Tag aggregates must have accepted_answers <= questions and acceptance rate in [0, 1].
+
+  - name: assert_int_notebook_cells_unnested_unique_grain
+    description: One row per GitHub repository path to a notebook file.
+
+  - name: assert_int_ipynb__notebook_cell_contents_unique_grain
+    description: One row per notebook path after aggregating code-cell parses.
+
+  - name: assert_int_ipynb__notebook_cell_contents_references_notebooks
+    description: Every parsed notebook must exist in the unnested notebook cells model.
+
+  - name: assert_stg_github_repos__python_files_unique_grain
+    description: One row per content id and file location on the default branch.
+    config:
+      tags: [github]
+
+  - name: assert_stg_github_repos__python_file_contents_unique_grain
+    description: Materialized file contents share the same grain as staged file metadata.
+    config:
+      tags: [github]
