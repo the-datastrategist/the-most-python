@@ -15,12 +15,16 @@ The goal is to move beyond surveys and tutorials and answer:
 
 This repository demonstrates applied data engineering and analytics modeling at warehouse scale with **dbt + BigQuery**.
 
+<br>
+
 ## Key deliverables
 
 - [Project Brief](https://thedatastrategist.notion.site/The-Most-Used-Python-61218fdc12564fcc8bef195098920808)
 - [Looker: "The Most Python" Report](https://datastudio.google.com/reporting/a5096f7e-26c8-48f7-a496-da1fdef6b008)
 - [Medium: The Top 10 Python Functions Used by Data Scientists](https://thedatastrategist.medium.com/what-are-pythons-most-used-functions-d760dc28fd96)
 - [LinkedIn: The Top 10 Python Functions Used by Data Scientists](https://www.linkedin.com/feed/update/urn:li:activity:6968311247918235648/)
+
+<br>
 
 ## Pipeline architecture
 
@@ -68,6 +72,8 @@ flowchart LR
 
 Raw tables are declared in `models/staging/_sources.yml` and referenced with `{{ source() }}`. Downstream models use `{{ ref() }}` only—no hardcoded project/dataset names.
 
+<br>
+
 ## Data sources
 
 ### GitHub (`bigquery-public-data.github_repos`)
@@ -84,6 +90,8 @@ Raw tables are declared in `models/staging/_sources.yml` and referenced with `{{
 - Download counts (sampled to June 2022) joined to package metadata
 
 All data is from **BigQuery public datasets** and transformed in a reproducible, SQL-first workflow.
+
+<br>
 
 ## Warehouse models
 
@@ -103,6 +111,8 @@ All data is from **BigQuery public datasets** and transformed in a reproducible,
 | `mart_stackoverflow__python_tags` | Tag-level engagement metrics |
 
 See `models/marts/_marts__models.yml` for the full mart catalog. Column-level documentation and tests live alongside models in `_models.yml` files.
+
+<br>
 
 ## Local development
 
