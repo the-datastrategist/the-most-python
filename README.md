@@ -1,87 +1,143 @@
 # The Most Python: How Data Scientists Use Python in the Wild
 
-**The Most Python** is an end-to-end analytics pipeline that analyzes how data scientists use Python in practice, based on large-scale, publicly available data from **GitHub** and **Stack Overflow**.
+**The Most Python** is a production-style analytics pipeline that analyzes how data scientists use Python in practice, using large-scale public data from **GitHub**, **Stack Overflow**, and **PyPI**.
 
 The project extracts, normalizes, and models real usage patterns of:
+
 - Python libraries
 - Functions and APIs
 - Notebook code cells
 - Common questions and pain points
 
-The goal is to move beyond surveys and tutorials, and instead answer:
+The goal is to move beyond surveys and tutorials and answer:
+
 > *How do data scientists actually use Python when solving real problems?*
 
-This repository demonstrates applied data engineering, analytics modeling, and analytical thinking at production scale using **dbt + SQL**.
+This repository demonstrates applied data engineering and analytics modeling at warehouse scale with **dbt + BigQuery**.
 
-## Key Deliverables
+## Key deliverables
+
 - [Project Brief](https://thedatastrategist.notion.site/The-Most-Used-Python-61218fdc12564fcc8bef195098920808)
 - [Looker: "The Most Python" Report](https://datastudio.google.com/reporting/a5096f7e-26c8-48f7-a496-da1fdef6b008)
 - [Medium: The Top 10 Python Functions Used by Data Scientists](https://thedatastrategist.medium.com/what-are-pythons-most-used-functions-d760dc28fd96)
 - [LinkedIn: The Top 10 Python Functions Used by Data Scientists](https://www.linkedin.com/feed/update/urn:li:activity:6968311247918235648/)
 
-<br>
+## Pipeline architecture
 
-## Data Sources
+Models follow a **staging → intermediate** layout:
 
-### GitHub
-- Public Python repositories
-- Jupyter notebooks (`.ipynb`)
-- Parsed notebook cells, imports, function calls, and code blocks
+| Layer | Purpose | Materialization |
+|-------|---------|-----------------|
+| **Staging** (`stg_*`) | Clean, filter, and join raw public datasets | Views (tables for heavy GitHub/Stack Overflow/PyPI builds) |
+| **Intermediate** (`int_*`) | Business logic: tag rollups, notebook cell parsing | Tables |
 
-### Stack Overflow
-- Python-tagged questions
-- Question text, tags, and metadata
-- Aggregated usage and topic trends
+```mermaid
+flowchart LR
+  subgraph sources [BigQuery public data]
+    GH[github_repos]
+    SO[stackoverflow]
+    PY[pypi]
+  end
 
-All data is sourced from **public datasets** and processed in a reproducible, SQL-first workflow.
+  subgraph staging [Staging]
+    PF[stg_github_repos__python_files]
+    PC[stg_github_repos__contents]
+    PFC[stg_github_repos__python_file_contents]
+    SQ[stg_stackoverflow__python_questions]
+    PL[stg_pypi__libraries]
+  end
 
-<br>
+  subgraph intermediate [Intermediate]
+    NC[int_notebook_cells_unnested]
+    TA[int_stackoverflow_tags_aggregated_metrics]
+  end
 
-## Analytical Focus Areas
+  GH --> PF --> PC --> PFC --> NC
+  SO --> SQ --> TA
+  PY --> PL
+```
 
-The pipeline supports analysis across multiple dimensions:
+Raw tables are declared in `models/staging/_sources.yml` and referenced with `{{ source() }}`. Downstream models use `{{ ref() }}` only—no hardcoded project/dataset names.
 
-### 1. Library Usage
-- Most frequently imported Python libraries
-- Co-occurrence patterns between libraries
-- Differences between notebook-centric vs script-centric usage
+## Data sources
 
-### 2. Function & API Usage
-- Most commonly called Python functions
-- Library-specific function popularity
-- Core language vs third-party API usage
+### GitHub (`bigquery-public-data.github_repos`)
 
-### 3. Notebook Behavior
-- Code cell structure and length
-- Function density per notebook
-- Common code patterns in exploratory workflows
+- Public Python repositories and Jupyter notebooks (`.ipynb`)
+- File metadata joined to contents for notebook and script analysis
 
-### 4. Developer Questions & Pain Points
-- Most common Python questions on Stack Overflow
-- Tag-level topic clustering
-- Mapping questions → libraries → functions
+### Stack Overflow (`bigquery-public-data.stackoverflow`)
 
-<br>
+- Python-tagged questions with accepted answers and engagement metrics
 
-## Project Architecture
+### PyPI (`bigquery-public-data.pypi`)
 
-This project is implemented as a **dbt analytics engineering pipeline**, emphasizing:
-- Modular SQL models
-- Clear separation of staging, intermediate, and analytical layers
-- Reproducible transformations
-- Warehouse-native scalability
+- Download counts (sampled to June 2022) joined to package metadata
 
-<br>
+All data is from **BigQuery public datasets** and transformed in a reproducible, SQL-first workflow.
 
-## Tables
+## Warehouse models
 
-This project’s dbt models generate the following warehouse relations:
+| Model | Description |
+|-------|-------------|
+| `stg_github_repos__python_files` | Python `.py` and `.ipynb` paths on `master` |
+| `stg_github_repos__contents` | File metadata + non-null contents |
+| `stg_github_repos__python_file_contents` | Materialized contents for downstream parsing (**very large**) |
+| `stg_stackoverflow__python_questions` | Python-tagged questions with answer text and URLs |
+| `stg_pypi__libraries` | PyPI downloads + metadata (June 2022 window) |
+| `int_notebook_cells_unnested` | Parsed notebook cells per repo path |
+| `int_stackoverflow_tags_aggregated_metrics` | Tag-set aggregates and accepted-answer rates |
 
-- **`stg_github_repos__python_file_contents` (table)**: Python + notebook file metadata joined to full file contents from the GitHub public dataset.
-- **`stg_stackoverflow__python_questions` (table)**: Stack Overflow questions tagged with Python, enriched with accepted answer text + URLs and engagement metrics.
-- **`stg_pypi__libraries` (table)**: PyPI packages with download counts (sampled window) joined to distribution metadata (summary, author, links, keywords).
-- **`int_notebook_cells_unnested`**: Parsed `.ipynb` JSON into per-notebook structured cell arrays (type, source/input, execution/output metadata).
-- **`int_stackoverflow_tags_aggregated_metrics` (table)**: Aggregations by tag set (question volume, engagement totals/averages, % with accepted answer).
+Column-level documentation and tests live alongside models in `_models.yml` files.
 
-- **`my_first_dbt_model` (table)** / **`my_second_dbt_model`**: Starter/example models included from the dbt template.
+## Local development
 
+### Prerequisites
+
+- Docker (recommended), or Python 3.11+ with `dbt-bigquery`
+- A GCP project with BigQuery enabled
+- A service account JSON key with BigQuery job/data access
+
+### Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `DBT_BQ_PROJECT` | GCP project id where models are built |
+| `DBT_BQ_DATASET` | BigQuery dataset (default: `the_most_python`) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account key JSON |
+
+### Docker (recommended)
+
+```bash
+docker build -t the-most-python-dbt .
+
+# Validate project parses and compiles (no warehouse run)
+docker run --rm \
+  -e DBT_BQ_PROJECT=your-gcp-project \
+  -e DBT_BQ_DATASET=the_most_python \
+  -v /path/to/key.json:/secrets/gcp-key.json:ro \
+  the-most-python-dbt parse
+
+docker run --rm \
+  -e DBT_BQ_PROJECT=your-gcp-project \
+  -e DBT_BQ_DATASET=the_most_python \
+  -v /path/to/key.json:/secrets/gcp-key.json:ro \
+  the-most-python-dbt compile
+
+# Run the DAG (costly on full GitHub contents — use --select)
+docker run --rm \
+  -e DBT_BQ_PROJECT=your-gcp-project \
+  -v /path/to/key.json:/secrets/gcp-key.json:ro \
+  the-most-python-dbt build --select stg_stackoverflow__python_questions+
+```
+
+Profiles are in `profiles/profiles.yml` (`DBT_PROFILES_DIR` is set in the image).
+
+### Cost notes
+
+- `stg_github_repos__python_file_contents` scans multi-TB GitHub content data; materialize intentionally and use `--select` during development.
+- `stg_pypi__libraries` limits downloads to **2022-06-01** through **2022-06-30** to keep query size manageable.
+
+## Legacy SQL
+
+Exploratory queries under `sql/` predate the dbt project. Use `models/` for production transformations.

@@ -1,0 +1,2 @@
+# dbt Core + BigQuery adapter (includes google-cloud-bigquery and dependencies)
+dbt-bigquery==1.11.1

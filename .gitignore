@@ -71,8 +71,10 @@ instance/
 # Sphinx documentation
 docs/_build/
 
-# PyBuilder
+# PyBuilder / dbt
 target/
+dbt_packages/
+logs/
 
 # Jupyter Notebook
 .ipynb_checkpoints
