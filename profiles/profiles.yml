@@ -1,0 +1,13 @@
+# BigQuery connection profile for Docker and CI.
+# Set DBT_BQ_PROJECT and mount a service account key at GOOGLE_APPLICATION_CREDENTIALS.
+default:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('DBT_BQ_PROJECT') }}"
+      dataset: "{{ env_var('DBT_BQ_DATASET', 'the_most_python') }}"
+      threads: 4
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      location: US
