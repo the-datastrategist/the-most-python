@@ -24,12 +24,13 @@ This repository demonstrates applied data engineering and analytics modeling at 
 
 ## Pipeline architecture
 
-Models follow a **staging → intermediate** layout:
+Models follow a **staging → intermediate → marts** layout:
 
 | Layer | Purpose | Materialization |
 |-------|---------|-----------------|
 | **Staging** (`stg_*`) | Clean, filter, and join raw public datasets | Views (tables for heavy GitHub/Stack Overflow/PyPI builds) |
-| **Intermediate** (`int_*`) | Business logic: tag rollups, notebook cell parsing | Tables |
+| **Intermediate** (`int_*`) | Reusable parsing and rollups (notebook cells, tag metrics) | Tables |
+| **Marts** (`mart_*`) | Analytics-ready datasets for reporting and exploration | Tables |
 
 ```mermaid
 flowchart LR
@@ -49,11 +50,19 @@ flowchart LR
 
   subgraph intermediate [Intermediate]
     NC[int_notebook_cells_unnested]
+    CC[int_ipynb__notebook_cell_contents]
     TA[int_stackoverflow_tags_aggregated_metrics]
   end
 
-  GH --> PF --> PC --> PFC --> NC
-  SO --> SQ --> TA
+  subgraph marts [Marts]
+    MNC[mart_ipynb__notebook_cells]
+    MFN[mart_ipynb__functions]
+    MSQ[mart_stackoverflow__python_questions]
+  end
+
+  GH --> PF --> PC --> PFC --> NC --> CC
+  NC --> MNC --> MFN
+  SO --> SQ --> MSQ --> TA
   PY --> PL
 ```
 
@@ -86,9 +95,14 @@ All data is from **BigQuery public datasets** and transformed in a reproducible,
 | `stg_stackoverflow__python_questions` | Python-tagged questions with answer text and URLs |
 | `stg_pypi__libraries` | PyPI downloads + metadata (June 2022 window) |
 | `int_notebook_cells_unnested` | Parsed notebook cells per repo path |
+| `int_ipynb__notebook_cell_contents` | Per-notebook import and function reference arrays |
 | `int_stackoverflow_tags_aggregated_metrics` | Tag-set aggregates and accepted-answer rates |
+| `mart_ipynb__functions` | Function popularity across notebooks |
+| `mart_ipynb__libraries` | Library usage across notebooks |
+| `mart_stackoverflow__python_questions` | Python SO questions (mart exposure of staging) |
+| `mart_stackoverflow__python_tags` | Tag-level engagement metrics |
 
-Column-level documentation and tests live alongside models in `_models.yml` files.
+See `models/marts/_marts__models.yml` for the full mart catalog. Column-level documentation and tests live alongside models in `_models.yml` files.
 
 ## Local development
 
@@ -138,6 +152,4 @@ Profiles are in `profiles/profiles.yml` (`DBT_PROFILES_DIR` is set in the image)
 - `stg_github_repos__python_file_contents` scans multi-TB GitHub content data; materialize intentionally and use `--select` during development.
 - `stg_pypi__libraries` limits downloads to **2022-06-01** through **2022-06-30** to keep query size manageable.
 
-## Legacy SQL
-
-Exploratory queries under `sql/` predate the dbt project. Use `models/` for production transformations.
+Analytical models live under `models/marts/`; build with `dbt build --select marts+` or narrower `--select` paths during development.
