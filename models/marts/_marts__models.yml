@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: mart_github_repos__python_file_contents
+    description: GitHub Python and notebook file contents for analytics and notebook parsing.
+
+  - name: mart_pypi__libraries
+    description: PyPI download counts joined to package metadata (June 2022 window).
+
+  - name: mart_stackoverflow__python_questions
+    description: Python-tagged Stack Overflow questions with accepted answers and engagement fields.
+
+  - name: mart_stackoverflow__python_tags
+    description: Tag-set aggregates and accepted-answer rates for Python Stack Overflow questions.
+
+  - name: mart_ipynb__notebook_cells
+    description: Parsed Jupyter notebook cells per repository path.
+
+  - name: mart_ipynb__notebook_code
+    description: Cleaned code cells per notebook with repository breadth ranks.
+
+  - name: mart_ipynb__libraries
+    description: Python libraries referenced in notebooks with repo and file share metrics.
+
+  - name: mart_ipynb__functions
+    description: Function references across notebooks with popularity and share metrics.
+
+  - name: mart_ipynb__function_samples
+    description: Ranked notebook code samples for high-usage Python functions.
+
+  - name: mart_ipynb__function_questions
+    description: Stack Overflow questions matched to popular notebook functions via tags.
+
+  - name: mart_ipynb__library_functions
+    description: Library and function co-occurrence within notebook files (function may not belong to library).
