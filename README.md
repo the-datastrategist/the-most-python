@@ -108,48 +108,59 @@ See `models/marts/_marts__models.yml` for the full mart catalog. Column-level do
 
 ### Prerequisites
 
-- Docker (recommended), or Python 3.11+ with `dbt-bigquery`
+- Docker and `make`
 - A GCP project with BigQuery enabled
 - A service account JSON key with BigQuery job/data access
 
 ### Environment variables
 
+Copy `.env.example` to `.env` and set your values. The Makefile loads `.env` automatically.
+
 | Variable | Description |
 |----------|-------------|
 | `DBT_BQ_PROJECT` | GCP project id where models are built |
 | `DBT_BQ_DATASET` | BigQuery dataset (default: `the_most_python`) |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account key JSON |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Host path to service account key JSON (mounted into the container) |
 
-### Docker (recommended)
+### Makefile commands
+
+All dbt commands run through the root `Makefile`, which builds a Docker image once and wraps `docker run` with the project mounted at `/app` (model edits apply without rebuilding) and your GCP key at `/secrets/gcp-key.json`.
+
+One-time setup:
 
 ```bash
-docker build -t the-most-python-dbt .
-
-# Validate project parses and compiles (no warehouse run)
-docker run --rm \
-  -e DBT_BQ_PROJECT=your-gcp-project \
-  -e DBT_BQ_DATASET=the_most_python \
-  -v /path/to/key.json:/secrets/gcp-key.json:ro \
-  the-most-python-dbt parse
-
-docker run --rm \
-  -e DBT_BQ_PROJECT=your-gcp-project \
-  -e DBT_BQ_DATASET=the_most_python \
-  -v /path/to/key.json:/secrets/gcp-key.json:ro \
-  the-most-python-dbt compile
-
-# Run the DAG (costly on full GitHub contents — use --select)
-docker run --rm \
-  -e DBT_BQ_PROJECT=your-gcp-project \
-  -v /path/to/key.json:/secrets/gcp-key.json:ro \
-  the-most-python-dbt build --select stg_stackoverflow__python_questions+
+cp .env.example .env   # then edit DBT_BQ_PROJECT and GOOGLE_APPLICATION_CREDENTIALS
+make docker-build
 ```
 
-Profiles are in `profiles/profiles.yml` (`DBT_PROFILES_DIR` is set in the image).
+Run models:
+
+```bash
+# Single model (dbt build --select <model>)
+make run-model MODEL=stg_stackoverflow__python_questions
+
+# Every model under a directory (dbt build --select path:<dir>)
+make run-dir DIR=staging/stackoverflow
+make run-dir DIR=models/marts
+```
+
+Run tests:
+
+```bash
+# Default selection: core models and singular tests (no GitHub table scans)
+make test
+
+# All data tests, including GitHub
+make test-all
+```
+
+`DIR` can be written as `staging/pypi` or `models/staging/pypi`. Use `DBT_CMD=run` to invoke `dbt run` instead of `dbt build` (tests are skipped).
+
+Run `make help` for the full target list and examples. Profiles live in `profiles/profiles.yml` (`DBT_PROFILES_DIR` is set in the Docker image).
 
 ### Cost notes
 
 - `stg_github_repos__python_file_contents` scans multi-TB GitHub content data; materialize intentionally and use `--select` during development.
 - `stg_pypi__libraries` limits downloads to **2022-06-01** through **2022-06-30** to keep query size manageable.
 
-Analytical models live under `models/marts/`; build with `dbt build --select marts+` or narrower `--select` paths during development.
+Analytical models live under `models/marts/`; during development prefer `make run-dir DIR=models/marts` or `make run-model MODEL=<name>` over building the full DAG.
