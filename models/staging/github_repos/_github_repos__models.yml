@@ -2,21 +2,59 @@ version: 2
 
 models:
   - name: stg_github_repos__python_files
-    description: Distinct Python scripts and Jupyter notebooks on the default branch (master) across public repos.
+    description: >
+      One row per distinct Python script (`.py`) or Jupyter notebook (`.ipynb`) path on the
+      default branch across public GitHub repos. Filtered to refs matching `master` and paths
+      containing `.py` or `ipynb`; use as the file spine before joining to `contents`.
     columns:
       - name: id
-        description: Content id shared with github_repos.contents.
+        description: Git blob/content id; join key to `github_repos.contents` and downstream content models.
         tests:
           - not_null
       - name: repo_name
+        description: Fully qualified repository name (`owner/repo`) from the GitHub public dataset.
         tests:
           - not_null
+      - name: repo_ref
+        description: Git ref for the file snapshot (filtered to default-branch refs containing `master`).
       - name: repo_path
+        description: Repository-relative file path (e.g. `notebooks/analysis.ipynb` or `src/train.py`).
         tests:
           - not_null
 
   - name: stg_github_repos__contents
-    description: Python and notebook file metadata joined to non-null file contents from the GitHub public dataset.
+    description: >
+      One row per Python or notebook file with non-null stored content. Joins staged file
+      metadata to `github_repos.contents` on `id`; excludes empty content blobs to reduce scan size.
+    columns:
+      - name: id
+        description: Content id linking file metadata to the stored blob in `contents`.
+      - name: repo_name
+        description: Fully qualified repository name (`owner/repo`).
+      - name: repo_ref
+        description: Git ref for this file version (default-branch filter applied upstream).
+      - name: repo_path
+        description: Repository-relative path to the `.py` or `.ipynb` file.
+      - name: content
+        description: Raw file body from GitHub (notebook JSON or Python source as stored in the public dataset).
+      - name: copies
+        description: Number of repositories referencing this identical content blob (GitHub deduplication metric).
 
   - name: stg_github_repos__python_file_contents
-    description: Materialized copy of staged GitHub file contents for downstream notebook parsing (large; query with care).
+    description: >
+      Materialized copy of `stg_github_repos__contents` for downstream notebook parsing. Same grain
+      and columns as the staging view; built as a table because re-scanning multi-TB content on every
+      query is cost-prohibitive—run and refresh intentionally.
+    columns:
+      - name: id
+        description: Content id linking file metadata to the stored blob.
+      - name: repo_name
+        description: Fully qualified repository name (`owner/repo`).
+      - name: repo_ref
+        description: Git ref for this file version.
+      - name: repo_path
+        description: Repository-relative path to the `.py` or `.ipynb` file.
+      - name: content
+        description: Raw file body used by `int_notebook_cells_unnested` and other parsing models.
+      - name: copies
+        description: Count of repos sharing this content blob.

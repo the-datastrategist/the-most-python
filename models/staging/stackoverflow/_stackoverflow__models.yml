@@ -2,12 +2,50 @@ version: 2
 
 models:
   - name: stg_stackoverflow__python_questions
-    description: Stack Overflow questions tagged with Python, enriched with accepted answer text and URLs.
+    description: >
+      One row per Stack Overflow question whose tag string includes `python`. Enriched with
+      accepted-answer body text (when present), human-readable tag lists, and canonical question/answer URLs.
     columns:
       - name: id
+        description: Stack Overflow question post id (primary key).
         tests:
           - unique
           - not_null
       - name: tags
+        description: Pipe-delimited tag string as stored on the question (e.g. `python|pandas|numpy`).
         tests:
           - not_null
+      - name: tags_list
+        description: Same tags as `tags`, formatted with comma separators for reporting and readability.
+      - name: title
+        description: Question title shown on Stack Overflow.
+      - name: body
+        description: Full question body (HTML/markdown as stored in the public dataset).
+      - name: accepted_answer_id
+        description: Post id of the accepted answer, if any; null when the question has no accepted answer.
+      - name: accepted_answer
+        description: Body text of the accepted answer post; null when `accepted_answer_id` is null.
+      - name: question_url
+        description: Canonical Stack Overflow URL for this question.
+      - name: answer_url
+        description: Canonical URL for the accepted answer; null when there is no accepted answer.
+      - name: has_accepted_answer
+        description: True when `accepted_answer_id` is present; convenience flag for acceptance-rate metrics.
+      - name: is_community_owned
+        description: True when `community_owned_date` is set (community wiki / shared ownership).
+      - name: answer_count
+        description: Total answers posted on the question at extract time.
+      - name: comment_count
+        description: Total comments on the question.
+      - name: favorite_count
+        description: Number of users who favorited the question.
+      - name: view_count
+        description: Lifetime view count for the question.
+      - name: creation_date
+        description: Date the question was created (UTC, date-truncated from `creation_date` timestamp).
+      - name: last_activity_date
+        description: Date of the most recent activity on the question thread.
+      - name: last_edit_date
+        description: Date of the last edit to the question body or title; null if never edited.
+      - name: community_owned_date
+        description: Date the question became community owned; null when not community owned.

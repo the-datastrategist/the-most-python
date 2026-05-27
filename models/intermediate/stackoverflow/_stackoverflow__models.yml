@@ -2,11 +2,40 @@ version: 2
 
 models:
   - name: int_stackoverflow_tags_aggregated_metrics
-    description: Question volume and engagement metrics aggregated by tag set, with share of questions and accepted-answer rate.
+    description: >
+      One row per distinct `tags` / `tags_list` combination among Python-tagged questions. Rolls up
+      counts and sums of engagement metrics, plus accepted-answer rate and each tag set's share of
+      all Python questions in the staging model.
     columns:
       - name: tags
+        description: Pipe-delimited tag string identifying this tag-set cohort.
         tests:
           - not_null
+      - name: tags_list
+        description: Comma-separated display form of the same tag set.
       - name: questions
+        description: Number of questions with exactly this tag combination.
         tests:
           - not_null
+      - name: accepted_answers
+        description: Count of questions in the cohort that have an accepted answer.
+      - name: answer_count
+        description: Sum of `answer_count` across questions in the cohort.
+      - name: comment_count
+        description: Sum of `comment_count` across questions in the cohort.
+      - name: favorite_count
+        description: Sum of `favorite_count` across questions in the cohort.
+      - name: view_count
+        description: Sum of `view_count` across questions in the cohort.
+      - name: avg_answer_count
+        description: Mean answers per question for this tag set.
+      - name: avg_comment_count
+        description: Mean comments per question for this tag set.
+      - name: avg_favorite_count
+        description: Mean favorites per question for this tag set.
+      - name: avg_view_count
+        description: Mean views per question for this tag set.
+      - name: pct_w_accepted_answer
+        description: Share of cohort questions with an accepted answer (`accepted_answers / questions`).
+      - name: pct_questions
+        description: This tag set's share of all Python questions (`questions / sum(questions)` over the table).

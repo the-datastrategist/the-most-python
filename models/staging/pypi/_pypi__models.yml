@@ -2,8 +2,28 @@ version: 2
 
 models:
   - name: stg_pypi__libraries
-    description: PyPI download counts for June 2022 joined to distribution metadata (summary, author, keywords).
+    description: >
+      One row per PyPI project and package version with download volume for June 2022 and joined
+      distribution metadata. Downloads are aggregated from `file_downloads` between 2022-06-01 and
+      2022-06-30 to keep the upstream scan manageable (~400GB+ without the date window).
     columns:
       - name: project
+        description: PyPI project name from download events (join key to metadata `name`).
         tests:
           - not_null
+      - name: version
+        description: Released package version associated with the download events in the window.
+      - name: downloads
+        description: Count of file download events for this project-version in June 2022.
+      - name: name
+        description: Package name from `distribution_metadata` (should match `project` when metadata exists).
+      - name: summary
+        description: Short package description from PyPI metadata.
+      - name: author
+        description: Author string from package metadata.
+      - name: keywords
+        description: Keyword tags from package metadata (often comma-separated).
+      - name: home_page
+        description: Project home page URL from metadata.
+      - name: download_url
+        description: Legacy download URL field from metadata, when provided by the maintainer.

@@ -2,4 +2,39 @@ version: 2
 
 models:
   - name: int_notebook_cells_unnested
-    description: Parsed .ipynb JSON into per-notebook arrays of cell structs (type, source, execution metadata).
+    description: >
+      One row per `.ipynb` file in staged GitHub contents. Notebook JSON is regex-parsed (not a full
+      JSON parser) into an array of cell structs per repo path; best-effort extraction of cell type,
+      source, inputs, metadata, and execution fields for usage analysis.
+    columns:
+      - name: repo_name
+        description: Fully qualified GitHub repository (`owner/repo`) containing the notebook.
+      - name: repo_path
+        description: Repository-relative path to the `.ipynb` file.
+      - name: cells
+        description: >
+          Array of structs, one per notebook cell fragment after splitting on `cell_type`. Fields
+          are extracted via regex from raw JSON text and may be incomplete for malformed notebooks.
+      - name: cells.cell
+        description: Raw string fragment for the cell slice before field extraction.
+      - name: cells.cell_type
+        description: Notebook cell type (e.g. `code`, `markdown`, `raw`) when matched in JSON.
+      - name: cells.cell_source
+        description: Extracted cell `source` array content as a single string, when present.
+      - name: cells.cell_input
+        description: Extracted input payload for code cells, when present in the JSON.
+      - name: cells.cell_metadata
+        description: Cell metadata object flattened to a whitespace-normalized string.
+      - name: cells.execution_count
+        description: Execution count for code cells, when present in the JSON.
+      - name: cells.output_type
+        description: Output type for cell outputs (e.g. `stream`, `execute_result`), when matched.
+      - name: cells.LANGUAGE
+        description: Language hint from cell or notebook metadata (e.g. `python`), when matched.
+      - name: cells.prompt_number
+        description: Legacy IPython prompt number, when present in the cell JSON.
+
+  - name: int_ipynb__notebook_cell_contents
+    description: >
+      One row per `.ipynb` file with arrays of `from`/`import` libraries and function references
+      parsed from code cells via regex (best-effort; not a full Python AST).
